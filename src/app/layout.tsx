@@ -46,7 +46,7 @@ export const metadata: Metadata = {
 
   // Google Search Console Verification
   verification: {
-    google: 'YOUR_GOOGLE_VERIFICATION_CODE', // User should replace this
+    google: 'OAv4N25-_EylIfm5Jo5lZ5ldSv2O8fp0g8ipHl3tulQ',
   },
 };
 
