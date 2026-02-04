@@ -22,10 +22,11 @@ export async function GET(request: NextRequest) {
     }
 
     try {
-        let newsApiLang = 'en';
-        if (language === 'ko') newsApiLang = 'ko';
-        else if (language === 'jp') newsApiLang = 'jp';
-        else if (language === 'es') newsApiLang = 'es';
+        // For better data availability in crypto, we default to English
+        const newsApiLang = 'en';
+        // if (language === 'ko') newsApiLang = 'ko';
+        // else if (language === 'jp') newsApiLang = 'jp';
+        // else if (language === 'es') newsApiLang = 'es';
 
         const newsApiUrl = `https://newsapi.org/v2/everything?q=${encodeURIComponent(keyword)}&language=${newsApiLang}&sortBy=relevancy&pageSize=100&apiKey=${apiKey}`;
 

@@ -51,11 +51,19 @@ export function VibeChecker() {
             ko: ['하락', '급락', '우려', '실패', '감소', '위기', '손실', '악재', '약세', '부진', '충격', '폭락', '최저', '축소', '위험']
         };
         // ... (rest of logic from original line 53-110)
-        const posList = positiveWords[language] || positiveWords['en'];
-        const negList = negativeWords[language] || negativeWords['en'];
+        // Since API is forced to 'en', we must evaluate with 'en' keywords
+        const posList = positiveWords['en'];
+        const negList = negativeWords['en'];
 
         let positive = 0, negative = 0, neutral = 0;
         const analyzedArticles: Article[] = [];
+
+        if (!articles || !Array.isArray(articles)) return {
+            keyword: term, vibeScore: 50, total: 0,
+            positive: 0, negative: 0, neutral: 0,
+            positivePercent: 0, negativePercent: 0, neutralPercent: 0,
+            articles: [], trendData: [], timestamp: new Date().toLocaleString()
+        };
 
         articles.forEach(article => {
             const text = `${article.title} ${article.description || ''}`.toLowerCase();
@@ -252,23 +260,29 @@ export function VibeChecker() {
 
                         {/* Compact List */}
                         <div className="flex-1 overflow-y-auto max-h-[200px] pr-2 space-y-1.5 custom-scrollbar">
-                            {vibeData.articles.map((article, i) => (
-                                <a
-                                    key={i}
-                                    href={article.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 transition-colors group"
-                                >
-                                    <div className={cn("w-1.5 h-1.5 rounded-full shrink-0",
-                                        article.sentiment === 'positive' ? "bg-emerald-500" :
-                                            article.sentiment === 'negative' ? "bg-red-500" : "bg-amber-500"
-                                    )} />
-                                    <span className="text-xs text-muted-foreground group-hover:text-white truncate transition-colors">
-                                        {article.title}
-                                    </span>
-                                </a>
-                            ))}
+                            {vibeData.articles.length === 0 ? (
+                                <div className="text-center py-8 text-muted-foreground text-xs">
+                                    No data available for this keyword.
+                                </div>
+                            ) : (
+                                vibeData.articles.map((article, i) => (
+                                    <a
+                                        key={i}
+                                        href={article.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 transition-colors group"
+                                    >
+                                        <div className={cn("w-1.5 h-1.5 rounded-full shrink-0",
+                                            article.sentiment === 'positive' ? "bg-emerald-500" :
+                                                article.sentiment === 'negative' ? "bg-red-500" : "bg-amber-500"
+                                        )} />
+                                        <span className="text-xs text-muted-foreground group-hover:text-white truncate transition-colors">
+                                            {article.title}
+                                        </span>
+                                    </a>
+                                ))
+                            )}
                         </div>
                     </div>
                 )}
