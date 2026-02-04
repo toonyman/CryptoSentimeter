@@ -368,93 +368,79 @@ export function InfluencerFeed() {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <AnimatePresence mode="popLayout">
                     {filteredInfluencers.map((inf) => (
                         <motion.div
                             key={inf.id}
                             layout
-                            initial={{ opacity: 0, scale: 0.9 }}
+                            initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.9 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
                             transition={{ duration: 0.2 }}
-                            className="glass-card group overflow-hidden flex flex-col h-full hover:border-white/20 transition-all border-white/5"
+                            className="glass-card group flex flex-col hover:border-white/20 transition-all border-white/5 relative overflow-hidden"
                         >
-                            {/* Card Header */}
-                            <div className="p-5 flex items-start justify-between border-b border-white/5 bg-gradient-to-br from-white/5 to-transparent">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-gray-700 to-gray-900 border border-white/10 flex items-center justify-center relative">
-                                        {inf.name === 'Brad Garlinghouse' || inf.name === 'David Schwartz' ? (
-                                            <ShieldCheck className="w-6 h-6 text-blue-400" />
-                                        ) : (
-                                            <User className="w-6 h-6 text-gray-400" />
-                                        )}
-                                        <div className={cn(
-                                            "absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-black flex items-center justify-center",
-                                            inf.platform === 'x' ? "bg-blue-500" : "bg-red-500"
-                                        )}>
-                                            {inf.platform === 'x' ? <Twitter className="w-3 h-3 text-white" /> : <Youtube className="w-3 h-3 text-white" />}
-                                        </div>
+                            <a
+                                href={inf.lastPost?.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="absolute inset-0 z-0"
+                                aria-label="View Link"
+                            />
+
+                            {/* Compact Header */}
+                            <div className="p-4 flex items-center justify-between pb-2 relative z-10">
+                                <div className="flex items-center gap-2.5">
+                                    <div className={cn(
+                                        "w-8 h-8 rounded-full flex items-center justify-center border border-white/10 shadow-inner",
+                                        inf.platform === 'x' ? "bg-blue-500/10" : "bg-red-500/10"
+                                    )}>
+                                        {inf.platform === 'x' ? <Twitter className="w-4 h-4 text-blue-400" /> : <Youtube className="w-4 h-4 text-red-400" />}
                                     </div>
-                                    <div>
-                                        <h3 className="font-bold text-white group-hover:text-cyan-400 transition-colors">{inf.name}</h3>
-                                        <p className="text-xs text-muted-foreground">{inf.handle}</p>
+                                    <div className="flex flex-col">
+                                        <h3 className="font-bold text-sm text-gray-200 group-hover:text-cyan-400 transition-colors leading-none mb-1">
+                                            <a href={inf.lastPost?.url} target="_blank" rel="noopener noreferrer" className="hover:underline focus:outline-none">
+                                                {inf.name}
+                                            </a>
+                                        </h3>
+                                        <p className="text-[10px] text-muted-foreground font-medium">{inf.handle}</p>
                                     </div>
                                 </div>
                                 <a
                                     href={inf.lastPost?.url}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="p-2 rounded-full bg-white/5 hover:bg-white/10 text-muted-foreground hover:text-white transition-all"
+                                    className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-xs font-medium text-muted-foreground hover:text-white transition-all border border-transparent hover:border-white/5"
                                 >
-                                    <ExternalLink className="w-4 h-4" />
+                                    <span className="opacity-0 group-hover:opacity-100 transition-opacity hidden sm:inline-block text-[10px]">View</span>
+                                    <ExternalLink className="w-3.5 h-3.5" />
                                 </a>
                             </div>
 
-                            {/* Card Content */}
-                            <div className="p-5 flex-1 flex flex-col">
-                                <p className="text-sm text-muted-foreground/80 mb-4 line-clamp-2 italic">
-                                    "{inf.bio}"
-                                </p>
-
+                            {/* Content Snippet */}
+                            <div className="px-4 pb-2 relative z-10 flex-1">
                                 {inf.lastPost && (
-                                    <div className="flex-1 space-y-3">
-                                        <div className="p-4 rounded-2xl bg-black/40 border border-white/5 group-hover:bg-black/60 transition-colors">
-                                            <div className="flex items-center gap-2 mb-2">
-                                                <span className="text-[10px] font-bold uppercase tracking-wider text-cyan-500 bg-cyan-500/10 px-2 py-0.5 rounded">{t.influencer.latest}</span>
-                                                <span className="text-[10px] text-muted-foreground">{inf.lastPost.date}</span>
-                                            </div>
-                                            <p className="text-sm text-gray-200 leading-relaxed line-clamp-3">
-                                                {inf.lastPost.text}
-                                            </p>
-                                        </div>
+                                    <div className="relative">
+                                        <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-white/10 rounded-full" />
+                                        <p className="pl-3 text-xs text-gray-400 leading-relaxed line-clamp-3 hover:text-gray-300 transition-colors">
+                                            {inf.lastPost.text}
+                                        </p>
                                     </div>
                                 )}
+                            </div>
 
-                                <div className="mt-4 flex flex-wrap gap-2">
-                                    {inf.tags.map(tag => (
-                                        <span key={tag} className="text-[10px] bg-white/5 text-muted-foreground px-2 py-1 rounded-md border border-white/5">
+                            {/* Footer (Tags & Time) */}
+                            <div className="p-3 px-4 mt-auto flex items-center justify-between border-t border-white/5 bg-white/[0.02] relative z-10">
+                                <div className="flex gap-1.5">
+                                    {inf.tags.slice(0, 2).map(tag => (
+                                        <span key={tag} className="text-[9px] font-bold text-muted-foreground/70 bg-white/5 px-1.5 py-0.5 rounded border border-white/5">
                                             #{tag}
                                         </span>
                                     ))}
                                 </div>
-                            </div>
-
-                            {/* Action Button */}
-                            <div className="p-5 pt-0 mt-auto">
-                                <a
-                                    href={inf.lastPost?.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className={cn(
-                                        "w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all",
-                                        inf.platform === 'x'
-                                            ? "bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 border border-blue-500/20"
-                                            : "bg-red-600/10 hover:bg-red-600/20 text-red-500 border border-red-500/20"
-                                    )}
-                                >
-                                    {inf.platform === 'x' ? t.influencer.view_x : t.influencer.watch_yt}
-                                </a>
+                                <span className="text-[10px] font-medium text-white/30 group-hover:text-white/50 transition-colors">
+                                    {inf.lastPost?.date}
+                                </span>
                             </div>
                         </motion.div>
                     ))}

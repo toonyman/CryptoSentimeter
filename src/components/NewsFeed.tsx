@@ -15,7 +15,7 @@ export function NewsFeed() {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.3 }}
-            className="glass-card p-6 rounded-3xl h-full flex flex-col"
+            className="glass-card p-6 rounded-xl flex flex-col"
         >
             <div className="flex items-center justify-between mb-6 shrink-0">
                 <h3 className="text-xl font-bold flex items-center gap-2">

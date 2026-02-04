@@ -56,6 +56,13 @@ export function MobileMenu() {
                                     {t.header.arbitrage}
                                 </Link>
                                 <Link
+                                    href="#vibe-checker"
+                                    className="px-6 py-4 text-base font-medium text-gray-300 hover:bg-white/5 hover:text-white transition-colors flex items-center justify-between"
+                                    onClick={closeMenu}
+                                >
+                                    {t.vibe.title}
+                                </Link>
+                                <Link
                                     href="#news"
                                     className="px-6 py-4 text-base font-medium text-gray-300 hover:bg-white/5 hover:text-white transition-colors flex items-center justify-between"
                                     onClick={closeMenu}

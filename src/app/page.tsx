@@ -2,10 +2,14 @@
 
 import { Activity, ArrowUpRight, BarChart3, PieChart } from 'lucide-react';
 import Link from 'next/link';
-import { useFearAndGreed, useGlobalMarket } from '@/hooks/useCryptoData';
+import { useFearAndGreed, useGlobalMarket, useCryptoPrices } from '@/hooks/useCryptoData';
 import { ArbitrageTable } from '@/components/ArbitrageTable';
 import { NewsFeed } from '@/components/NewsFeed';
 import { InfluencerFeed } from '@/components/InfluencerFeed';
+import { VibeChecker } from '@/components/VibeChecker';
+import { DominancePhase } from '@/components/DominancePhase';
+import { MacroInsights } from '@/components/MacroInsights';
+import { DailyMarketBrief } from '@/components/DailyMarketBrief';
 import { BitcoinChart } from '@/components/BitcoinChart';
 import { LanguageToggle } from '@/components/LanguageToggle';
 import { ShareMenu } from '@/components/ShareMenu';
@@ -16,9 +20,10 @@ import { LineChart, Line, ResponsiveContainer, YAxis } from 'recharts';
 import { MobileMenu } from '@/components/MobileMenu';
 
 function Dashboard() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { data: fng, history: fngHistory, isLoading: fngLoading } = useFearAndGreed();
   const { data: globalData, isLoading: globalLoading } = useGlobalMarket();
+  const { coins } = useCryptoPrices();
 
   const getFngColor = (value: number) => {
     if (value >= 75) return "text-green-500";
@@ -30,7 +35,14 @@ function Dashboard() {
   const fngValue = fng ? parseInt(fng.value) : 50;
   const fngColor = getFngColor(fngValue);
 
-  // Prepare Sparkline data (reverse to chronological)
+  const btc = coins?.find(c => c.symbol.toLowerCase() === 'btc');
+  const btcChange = btc?.price_change_percentage_24h || 0;
+  const isBullish = btcChange >= 0;
+
+  const outlookDesc = language === 'ko'
+    ? (isBullish ? "시장이 회복세를 보이고 있습니다. 주요 지지선을 지켜낸다면 추가 상승을 기대할 수 있습니다." : "현재 조정은 지지선 테스트 단계입니다. 거래량과 기관의 움직임을 주시해야 합니다.")
+    : (isBullish ? "The market shows resilience. If support holds, we may see upward momentum." : "Current dip tests support levels. Watch for volume and institutional flows.");
+
   const fngSparkData = fngHistory ? [...fngHistory].reverse().map(item => ({ value: parseInt(item.value) })) : [];
 
   return (
@@ -50,6 +62,7 @@ function Dashboard() {
           <nav className="hidden md:flex gap-6 text-sm font-medium text-muted-foreground mr-2">
             <Link href="#dashboard" className="hover:text-primary transition-colors">{t.header.dashboard}</Link>
             <Link href="#arbitrage" className="hover:text-primary transition-colors">{t.header.arbitrage}</Link>
+            <Link href="#vibe-checker" className="hover:text-primary transition-colors">{t.vibe.title}</Link>
             <Link href="#news" className="hover:text-primary transition-colors">{t.header.news}</Link>
             <Link href="#influencers" className="hover:text-primary transition-colors">{t.influencer.title}</Link>
             <Link href="/daily-report" className="hover:text-primary transition-colors">{t.header.report}</Link>
@@ -85,14 +98,25 @@ function Dashboard() {
           <p className="text-lg md:text-xl text-muted-foreground/80 max-w-2xl mx-auto leading-relaxed">
             {t.hero.subtitle}
           </p>
+
+          <DailyMarketBrief
+            fngValue={fngValue}
+            btcChange={btcChange}
+            outlookDesc={outlookDesc}
+          />
         </motion.div>
       </section>
 
       {/* Dashboard Grid */}
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-6 auto-rows-[minmax(350px,auto)]">
 
+        {/* Vibe Checker (Row 0, Full Width) */}
+        <div className="lg:col-span-3">
+          <VibeChecker />
+        </div>
+
         {/* Bitcoin Chart (Row 1) */}
-        <div className="glass-card p-6 rounded-3xl lg:col-span-2 flex flex-col justify-center">
+        <div className="glass-card p-6 rounded-xl lg:col-span-2 flex flex-col justify-center">
           <BitcoinChart />
         </div>
 
@@ -100,7 +124,7 @@ function Dashboard() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="glass-card p-0 rounded-3xl lg:col-span-1 flex flex-col relative overflow-hidden"
+          className="glass-card p-0 rounded-xl lg:col-span-1 flex flex-col relative overflow-hidden"
         >
           <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 pointer-events-none" />
 
@@ -159,43 +183,9 @@ function Dashboard() {
             )}
           </div>
 
-          {/* Bottom Half: Market Indexes (Dominance) */}
-          <div className="p-6 grid grid-cols-2 gap-4 bg-black/10 flex-1">
-            <div className="flex flex-col items-center justify-center p-3 rounded-2xl bg-white/5 border border-white/5 relative overflow-hidden">
-              <div className="flex items-center gap-2 mb-2 z-10">
-                <div className="p-1.5 rounded-full bg-orange-500/20 text-orange-400">
-                  <BarChart3 className="w-4 h-4" />
-                </div>
-                <span className="text-xs font-medium text-muted-foreground">{t.dominance.btc_index}</span>
-              </div>
-              {globalLoading ? (
-                <div className="h-6 w-12 bg-white/10 rounded animate-pulse" />
-              ) : (
-                <div className="text-center z-10">
-                  <span className="text-lg font-bold text-white">
-                    {globalData?.market_cap_percentage?.btc.toFixed(1)}%
-                  </span>
-                </div>
-              )}
-            </div>
-
-            <div className="flex flex-col items-center justify-center p-3 rounded-2xl bg-white/5 border border-white/5 relative overflow-hidden">
-              <div className="flex items-center gap-2 mb-2 z-10">
-                <div className="p-1.5 rounded-full bg-blue-500/20 text-blue-400">
-                  <PieChart className="w-4 h-4" />
-                </div>
-                <span className="text-xs font-medium text-muted-foreground">{t.dominance.alt_index}</span>
-              </div>
-              {globalLoading ? (
-                <div className="h-6 w-12 bg-white/10 rounded animate-pulse" />
-              ) : (
-                <div className="text-center z-10">
-                  <span className="text-lg font-bold text-white">
-                    {globalData?.market_cap_percentage?.eth.toFixed(1)}%
-                  </span>
-                </div>
-              )}
-            </div>
+          {/* Bottom Half: Market Cycle Analysis (Dominance) */}
+          <div className="p-6 bg-black/10 flex-1 border-t border-white/5">
+            <DominancePhase />
           </div>
 
           {/* New External Link Button */}
@@ -212,18 +202,24 @@ function Dashboard() {
           </div>
         </motion.div>
 
-        {/* Arbitrage Table (Row 2, Full Width) */}
+        {/* Macro Economic Insights (Row 2) */}
+        <div className="lg:col-span-3 glass-card p-6 rounded-xl border border-white/5 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 blur-3xl rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+          <MacroInsights />
+        </div>
+
+        {/* Arbitrage Table (Row 3, Full Width) */}
         <div id="arbitrage" className="lg:col-span-3 h-full">
           <ArbitrageTable />
         </div>
 
-        {/* News Feed (Row 3, Full Width) */}
-        <div id="news" className="lg:col-span-3 h-full min-h-[500px]">
+        {/* News & Analysis Section (Integrated) */}
+        <div id="news" className="lg:col-span-3 space-y-8">
           <NewsFeed />
         </div>
 
-        {/* Influencer Feed (Row 4, Full Width) */}
-        <div id="influencers" className="lg:col-span-3 h-full pt-10 border-t border-white/5">
+        {/* Influencer Feed (Row 5, Full Width) */}
+        <div id="influencers" className="lg:col-span-3 pt-8 border-t border-white/5">
           <InfluencerFeed />
         </div>
 

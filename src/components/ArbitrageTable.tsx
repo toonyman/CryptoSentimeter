@@ -53,7 +53,7 @@ export function ArbitrageTable() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="glass-card p-4 md:p-6 rounded-3xl overflow-hidden h-full"
+            className="glass-card p-4 md:p-6 rounded-xl overflow-hidden h-full"
         >
             <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xl font-bold flex items-center gap-2">
