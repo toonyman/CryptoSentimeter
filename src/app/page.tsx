@@ -59,6 +59,14 @@ function Dashboard() {
         </div>
 
         <div className="flex items-center gap-4">
+          <nav className="hidden md:flex gap-6 text-sm font-medium text-muted-foreground mr-2">
+            <Link href="#dashboard" className="hover:text-primary transition-colors">{t.header.dashboard}</Link>
+            <Link href="#arbitrage" className="hover:text-primary transition-colors">{t.header.arbitrage}</Link>
+            <Link href="#vibe-checker" className="hover:text-primary transition-colors">{t.vibe.title}</Link>
+            <Link href="#news" className="hover:text-primary transition-colors">{t.header.news}</Link>
+            <Link href="#influencers" className="hover:text-primary transition-colors">{t.influencer.title}</Link>
+            <Link href="/daily-report" className="hover:text-primary transition-colors">{t.header.report}</Link>
+          </nav>
           <LanguageToggle />
           <ShareMenu />
           <MobileMenu />
@@ -66,7 +74,7 @@ function Dashboard() {
       </header>
 
       {/* Hero Section */}
-      <section className="relative text-center py-6 md:py-10">
+      <section className="relative text-center py-10 md:py-16">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -79,6 +87,17 @@ function Dashboard() {
             </span>
             {t.hero.live_data}
           </span>
+          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6">
+            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-red-400 via-orange-400 to-amber-400">
+              {t.hero.title1}
+            </span>
+            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-400 mt-2">
+              {t.hero.title2}
+            </span>
+          </h1>
+          <p className="text-lg md:text-xl text-muted-foreground/80 max-w-2xl mx-auto leading-relaxed">
+            {t.hero.subtitle}
+          </p>
 
           <DailyMarketBrief
             fngValue={fngValue}

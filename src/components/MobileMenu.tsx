@@ -14,7 +14,7 @@ export function MobileMenu() {
     const closeMenu = () => setIsOpen(false);
 
     return (
-        <div className="">
+        <div className="md:hidden">
             <button
                 onClick={toggleMenu}
                 className="p-2 text-muted-foreground hover:text-white transition-colors relative z-[101]"
