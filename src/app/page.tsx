@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useFearAndGreed, useGlobalMarket } from '@/hooks/useCryptoData';
 import { ArbitrageTable } from '@/components/ArbitrageTable';
 import { NewsFeed } from '@/components/NewsFeed';
+import { InfluencerFeed } from '@/components/InfluencerFeed';
 import { BitcoinChart } from '@/components/BitcoinChart';
 import { LanguageToggle } from '@/components/LanguageToggle';
 import { ShareMenu } from '@/components/ShareMenu';
@@ -50,6 +51,7 @@ function Dashboard() {
             <Link href="#dashboard" className="hover:text-primary transition-colors">{t.header.dashboard}</Link>
             <Link href="#arbitrage" className="hover:text-primary transition-colors">{t.header.arbitrage}</Link>
             <Link href="#news" className="hover:text-primary transition-colors">{t.header.news}</Link>
+            <Link href="#influencers" className="hover:text-primary transition-colors">{t.influencer.title}</Link>
             <Link href="/daily-report" className="hover:text-primary transition-colors">{t.header.report}</Link>
           </nav>
           <LanguageToggle />
@@ -218,6 +220,11 @@ function Dashboard() {
         {/* News Feed (Row 3, Full Width) */}
         <div id="news" className="lg:col-span-3 h-full min-h-[500px]">
           <NewsFeed />
+        </div>
+
+        {/* Influencer Feed (Row 4, Full Width) */}
+        <div id="influencers" className="lg:col-span-3 h-full pt-10 border-t border-white/5">
+          <InfluencerFeed />
         </div>
 
       </section>

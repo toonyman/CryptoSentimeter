@@ -51,7 +51,21 @@ type Translations = {
         };
         chart: {
             title: string;
-        }
+        };
+        influencer: {
+            title: string;
+            subtitle: string;
+            view_x: string;
+            watch_yt: string;
+            all: string;
+            latest: string;
+            ago_2h: string;
+            ago_4h: string;
+            ago_6h: string;
+            ago_8h: string;
+            ago_1d: string;
+            ago_2d: string;
+        };
     };
 };
 
@@ -102,6 +116,20 @@ const translations: Translations = {
         },
         chart: {
             title: "Bitcoin 7-Day Trend"
+        },
+        influencer: {
+            title: "Influencer Insights",
+            subtitle: "Real-time analysis from top crypto figures.",
+            view_x: "View on X",
+            watch_yt: "Watch on YouTube",
+            all: "All",
+            latest: "Latest insight",
+            ago_2h: "2h ago",
+            ago_4h: "4h ago",
+            ago_6h: "6h ago",
+            ago_8h: "8h ago",
+            ago_1d: "1 day ago",
+            ago_2d: "2 days ago"
         }
     },
     ko: {
@@ -150,6 +178,20 @@ const translations: Translations = {
         },
         chart: {
             title: "비트코인 7일 추세"
+        },
+        influencer: {
+            title: "인플루언서 인사이트",
+            subtitle: "주요 인플루언서들의 실시간 시장 분석 리포트",
+            view_x: "X에서 보기",
+            watch_yt: "유튜브에서 시청",
+            all: "전체",
+            latest: "최신 인사이트",
+            ago_2h: "2시간 전",
+            ago_4h: "4시간 전",
+            ago_6h: "6시간 전",
+            ago_8h: "8시간 전",
+            ago_1d: "1일 전",
+            ago_2d: "2일 전"
         }
     }
 };

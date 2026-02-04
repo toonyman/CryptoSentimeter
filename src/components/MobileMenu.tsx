@@ -63,6 +63,13 @@ export function MobileMenu() {
                                     {t.header.news}
                                 </Link>
                                 <Link
+                                    href="#influencers"
+                                    className="px-6 py-4 text-base font-medium text-gray-300 hover:bg-white/5 hover:text-white transition-colors flex items-center justify-between"
+                                    onClick={closeMenu}
+                                >
+                                    {t.influencer.title}
+                                </Link>
+                                <Link
                                     href="/daily-report"
                                     className="px-6 py-4 text-base font-medium text-gray-300 hover:bg-white/5 hover:text-white transition-colors flex items-center justify-between"
                                     onClick={closeMenu}
