@@ -90,6 +90,21 @@ export function DominancePhase() {
                 </div>
             </div>
 
+            {/* Market Phase Signal (Weather/Traffic Light) */}
+            <div className="flex items-center gap-3 mb-6 p-3 rounded-xl bg-white/5 border border-white/5 transition-colors hover:bg-white/10">
+                <div className={cn("p-2 rounded-lg bg-opacity-20 flex items-center justify-center shadow-inner", analysis.colorClass.replace('text', 'bg'))}>
+                    {analysis.icon}
+                </div>
+                <div className="flex flex-col">
+                    <span className={cn("text-xs font-black uppercase tracking-widest", analysis.colorClass)}>
+                        {analysis.phase}
+                    </span>
+                    <span className="text-[10px] text-gray-400 font-medium leading-tight mt-0.5">
+                        {analysis.suggestion}
+                    </span>
+                </div>
+            </div>
+
             {/* Dominance Bars */}
             <div className="space-y-6">
                 {/* Bitcoin Index */}

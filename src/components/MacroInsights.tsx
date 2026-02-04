@@ -163,6 +163,18 @@ export function MacroInsights() {
                     <div className="mt-2 text-[10px] text-amber-400/80 font-bold font-mono">
                         {data.analysis?.correlation || ""}
                     </div>
+
+                    {/* Strategy Note */}
+                    <div className="mt-3 pt-3 border-t border-white/5">
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">
+                            Portfolio Strategy
+                        </p>
+                        <p className="text-[11px] text-gray-400">
+                            {data.analysis?.impact?.includes('Positive') || data.analysis?.impact?.includes('Bullish')
+                                ? "Favorable macro environment. Consider increasing allocation to risk assets and Altcoins."
+                                : "Macro headwinds persist. Prioritize capital preservation and focus on Bitcoin dominance."}
+                        </p>
+                    </div>
                 </div>
             </div>
 

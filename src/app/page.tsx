@@ -174,6 +174,25 @@ function Dashboard() {
                   </ResponsiveContainer>
                 </div>
                 <p className="text-[10px] text-muted-foreground mt-1 uppercase tracking-widest">7 Day Trend</p>
+
+                {/* Contrarian Signal / Deep Dive */}
+                <div className="mt-6 w-full p-3 rounded-lg bg-white/5 border border-white/5 text-left">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-[10px] bg-white/10 text-white px-1.5 py-0.5 rounded font-bold uppercase">insight</span>
+                    <span className={cn("text-xs font-bold",
+                      (fngValue < 40 && btcChange > 0) ? "text-emerald-400" :
+                        (fngValue > 60 && btcChange < 0) ? "text-rose-400" : "text-blue-400"
+                    )}>
+                      {(fngValue < 40 && btcChange > 0) ? "Bullish Divergence (Accumulation)" :
+                        (fngValue > 60 && btcChange < 0) ? "Bearish Divergence (Caution)" : "Trend Following"}
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground leading-relaxed">
+                    {(fngValue < 40 && btcChange > 0) ? "Prices are rising despite low sentiment. Smart money may be accumulating while retail is fearful." :
+                      (fngValue > 60 && btcChange < 0) ? "Prices are dropping despite high greed. Potential distribution phase or bull trap warning." :
+                        "Market sentiment aligns with price action. Trend is likely to continue in the current direction."}
+                  </p>
+                </div>
               </>
             )}
           </div>
