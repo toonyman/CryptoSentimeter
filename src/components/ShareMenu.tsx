@@ -41,7 +41,7 @@ export function ShareMenu() {
                             {copied ? "Copied!" : "Copy URL"}
                         </button>
                         <a
-                            href={`https://twitter.com/intent/tweet?text=Check out CryptoSentimeter!&url=${shareUrl}`}
+                            href={`https://twitter.com/intent/tweet?text=${encodeURIComponent('"Buy the Fear, Sell the Greed!" 📉➡️📈\n\nTrack real-time Kimchi Premium, Coinbase Premium, and global market sentiment data for free on CryptoSentimeter. Check it out now:\n\n#CryptoSentimeter #Bitcoin #FearAndGreed #KimchiPremium #CryptoInvestment #Arbitrage #BTC #CryptoNews')}&url=${encodeURIComponent(shareUrl)}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-xs font-medium transition-colors"
