@@ -58,7 +58,7 @@ export default function RootLayout({
   const GA_ID = process.env.NEXT_PUBLIC_GA_ID || 'G-CCY9HSS2MN';
 
   return (
-    <html lang="ko" className="dark">
+    <html lang="en" className="dark">
       <head>
         <Script
           async

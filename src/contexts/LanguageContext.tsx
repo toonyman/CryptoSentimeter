@@ -163,7 +163,7 @@ interface LanguageContextType {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-    const [language, setLanguage] = useState<Language>('ko'); // Default to Korean as per recent request context implies user is Korean
+    const [language, setLanguage] = useState<Language>('en'); // Default to English as per recent request
 
     return (
         <LanguageContext.Provider value={{ language, setLanguage, t: translations[language] }}>
