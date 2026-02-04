@@ -253,6 +253,19 @@ export function VibeChecker() {
                                             <stop offset="100%" stopColor="#10b981" stopOpacity={0} />
                                         </linearGradient>
                                     </defs>
+                                    <XAxis
+                                        dataKey="date"
+                                        axisLine={false}
+                                        tickLine={false}
+                                        tick={{ fontSize: 8, fill: '#6b7280' }}
+                                        minTickGap={10}
+                                        tickFormatter={(value) => {
+                                            if (!value) return '';
+                                            const parts = value.split('-');
+                                            if (parts.length === 3) return `${parts[1]}/${parts[2]}`;
+                                            return value;
+                                        }}
+                                    />
                                     <Area type="monotone" dataKey="score" stroke="#10b981" strokeWidth={2} fill="url(#vibeSimpleGradient)" dot={false} />
                                 </AreaChart>
                             </ResponsiveContainer>
