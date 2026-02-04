@@ -77,58 +77,48 @@ export function DominancePhase() {
 
     if (!analysis) return null;
 
+    const altDominance = 100 - analysis.btcDominance;
+
     return (
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col h-full justify-center">
             {/* Header */}
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-2">
-                    <div className={cn("p-1.5 rounded-lg bg-opacity-20", analysis.colorClass.replace('text', 'bg'))}>
-                        {analysis.icon}
-                    </div>
                     <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
                         {t.dominance.title}
                     </h3>
                 </div>
-                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-white/5 border border-white/10">
-                    <span className="text-[10px] font-bold text-white">{analysis.btcDominance.toFixed(1)}%</span>
-                </div>
             </div>
 
-            {/* Main Display */}
-            <div className="flex-1 flex flex-col justify-center items-center text-center space-y-3 mb-4">
-                <motion.div
-                    initial={{ scale: 0.9, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    className={cn("text-2xl font-black tracking-tight leading-tight", analysis.colorClass)}
-                >
-                    {analysis.phase}
-                </motion.div>
-                <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden border border-white/5 px-[1px]">
-                    <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${analysis.btcDominance}%` }}
-                        className={cn("h-full rounded-full shadow-[0_0_10px_rgba(255,255,255,0.2)]", analysis.colorClass.replace('text', 'bg'))}
-                    />
+            {/* Dominance Bars */}
+            <div className="space-y-6">
+                {/* Bitcoin Index */}
+                <div className="space-y-2">
+                    <div className="flex justify-between text-xs font-bold text-gray-300">
+                        <span>{t.dominance.btc_index}</span>
+                        <span>{analysis.btcDominance.toFixed(1)}%</span>
+                    </div>
+                    <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                        <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${analysis.btcDominance}%` }}
+                            className="h-full bg-orange-500 rounded-full shadow-[0_0_10px_rgba(249,115,22,0.3)]"
+                        />
+                    </div>
                 </div>
-                <div className="flex justify-between w-full text-[9px] text-muted-foreground font-medium uppercase tracking-tighter">
-                    <span>{t.dominance.alt_heavy}</span>
-                    <span>{t.dominance.neutral}</span>
-                    <span>{t.dominance.btc_heavy}</span>
-                </div>
-            </div>
 
-            {/* AI Analysis Card */}
-            <div className="p-3 rounded-xl bg-black/40 border border-white/5 relative overflow-hidden group">
-                <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-cyan-500 to-blue-500 opacity-50" />
-                <div className="flex items-start gap-2">
-                    <Info className="w-4 h-4 text-cyan-400 mt-0.5 shrink-0" />
-                    <div>
-                        <p className="text-xs text-gray-300 leading-relaxed font-medium">
-                            {analysis.description}
-                        </p>
-                        <p className="text-[10px] text-cyan-400/80 mt-2 font-bold italic">
-                            💡 {analysis.suggestion}
-                        </p>
+                {/* Altcoin Index */}
+                <div className="space-y-2">
+                    <div className="flex justify-between text-xs font-bold text-gray-300">
+                        <span>{t.dominance.alt_index}</span>
+                        <span>{altDominance.toFixed(1)}%</span>
+                    </div>
+                    <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                        <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${altDominance}%` }}
+                            className="h-full bg-blue-500 rounded-full shadow-[0_0_10px_rgba(59,130,246,0.3)]"
+                        />
                     </div>
                 </div>
             </div>
