@@ -51,107 +51,96 @@ interface CoinGeckoCoin {
 
 export function useArbitrage() {
     // 1. Fetch Top 20 Coins
-    const { data: coinsData } = useSWR<CoinGeckoCoin[]>(
+    const { data: coinsData, error: coinsError, isLoading: coinsLoading } = useSWR<CoinGeckoCoin[]>(
         'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=20&page=1&sparkline=false',
         fetcher,
-        { refreshInterval: 60000 }
+        { refreshInterval: 60000, keepPreviousData: true }
     );
 
     // 2. Fetch USD/KRW Exchange Rate
     const { data: exchangeRateData } = useSWR(
         'https://api.exchangerate-api.com/v4/latest/USD',
         fetcher,
-        { refreshInterval: 600000 }
+        { refreshInterval: 600000, revalidateOnFocus: false }
     );
-    const usdToKrw = exchangeRateData?.rates?.KRW || 1350;
+    const usdToKrw = exchangeRateData?.rates?.KRW || 1400;
 
-    // 3. Fetch All Upbit Markets to validate support
+    // 3. Fetch All Upbit Markets
     const { data: upbitMarketList } = useSWR<UpbitMarket[]>(
         'https://api.upbit.com/v1/market/all?isDetails=false',
         fetcher,
-        { revalidateOnFocus: false }
+        { revalidateOnFocus: false, revalidateOnReconnect: false }
     );
 
-    // Filter coinsData to only include markets that exist in Upbit
-
     let validUpbitMarketsString = '';
+    const validMarketsSet = new Set<string>();
 
     if (coinsData && upbitMarketList) {
-        // Create a Set of valid KRW markets for checks
-        const validMarkets = new Set(upbitMarketList.filter(m => m.market.startsWith('KRW-')).map(m => m.market));
+        upbitMarketList.forEach(m => {
+            if (m.market.startsWith('KRW-')) validMarketsSet.add(m.market);
+        });
 
-        // Filter our coins to only those compatible
-        const compatibleSymbols = coinsData.map(c => {
-            const market = `KRW-${c.symbol.toUpperCase()}`;
-            return validMarkets.has(market) ? market : null;
-        }).filter(Boolean);
+        const compatibleSymbols = coinsData
+            .map(c => `KRW-${c.symbol.toUpperCase()}`)
+            .filter(market => validMarketsSet.has(market));
 
         validUpbitMarketsString = compatibleSymbols.join(',');
     }
 
-    // 4. Fetch Upbit Prices (KRW) ONLY for valid markets
-    const { data: upbitData } = useSWR<UpbitTicker[]>(
+    // 4. Fetch Upbit Tickers
+    const { data: upbitData, error: upbitError, isLoading: upbitLoading } = useSWR<UpbitTicker[]>(
         validUpbitMarketsString ? `https://api.upbit.com/v1/ticker?markets=${validUpbitMarketsString}` : null,
         fetcher,
-        { refreshInterval: 10000 }
+        { refreshInterval: 10000, keepPreviousData: true }
     );
 
-    // 5. Fetch Binance Prices (All)
-    const { data: binanceData } = useSWR<BinanceTicker[]>(
+    // 5. Fetch Binance Tickers
+    const { data: binanceData, error: binanceError, isLoading: binanceLoading } = useSWR<BinanceTicker[]>(
         `https://api.binance.com/api/v3/ticker/price`,
         fetcher,
-        { refreshInterval: 10000 }
+        { refreshInterval: 10000, keepPreviousData: true }
     );
 
-    // 6. Fetch Coinbase Rates (All)
+    // 6. Fetch Coinbase Tickers
     const { data: coinbaseData } = useSWR<CoinbaseRates>(
         `https://api.coinbase.com/v2/exchange-rates?currency=USD`,
         fetcher,
-        { refreshInterval: 10000 }
+        { refreshInterval: 10000, keepPreviousData: true }
     );
 
-
-    const isLoading = !coinsData || !upbitMarketList || !upbitData || !binanceData || !exchangeRateData;
+    const isLoading = (!coinsData && !coinsError) ||
+        (!binanceData && !binanceError) ||
+        (validUpbitMarketsString && !upbitData && !upbitError);
 
     let arbitrageData: ArbitrageData[] = [];
 
-    if (!isLoading && coinsData && Array.isArray(upbitData) && Array.isArray(binanceData)) {
+    if (coinsData && binanceData && upbitData) {
+        // Optimization: Create lookups for O(1) access
+        const upbitMap = new Map(upbitData.map(t => [t.market, t.trade_price]));
+        const binanceMap = new Map(binanceData.map(t => [t.symbol, t.price]));
+        const coinbaseRates = coinbaseData?.data?.rates || {};
+
         arbitrageData = coinsData.map((coin) => {
-            const symbolUpper = coin.symbol.toUpperCase();
-            const upbitSymbol = `KRW-${symbolUpper}`;
+            const sym = coin.symbol.toUpperCase();
 
-            // Check if we have data for this symbol
-            const upbitTicker = upbitData.find((t) => t.market === upbitSymbol);
-            const upbitPrice = upbitTicker ? upbitTicker.trade_price : 0;
-
-            // If upbitPrice is 0 (not in our valid fetch list or filtered out), skip
+            const upbitPrice = upbitMap.get(`KRW-${sym}`);
             if (!upbitPrice) return null;
 
-            const binanceTicker = binanceData.find(t => t.symbol === `${symbolUpper}USDT`);
-            let binancePrice = binanceTicker ? parseFloat(binanceTicker.price) : 0;
+            const bPriceStr = binanceMap.get(`${sym}USDT`);
+            let binancePrice = bPriceStr ? parseFloat(bPriceStr) : 0;
+            if (sym === 'USDT') binancePrice = 1;
 
-            if (symbolUpper === 'USDT') {
-                binancePrice = 1;
-            }
+            const cRate = coinbaseRates[sym];
+            const coinbasePrice = cRate ? 1 / parseFloat(cRate) : 0;
 
-            const coinbasePrice = coinbaseData?.data?.rates[symbolUpper]
-                ? 1 / parseFloat(coinbaseData.data.rates[symbolUpper])
+            const globalPriceKrw = binancePrice * usdToKrw;
+            const kimchiPremium = globalPriceKrw ? ((upbitPrice - globalPriceKrw) / globalPriceKrw) * 100 : 0;
+            const coinbasePremium = (coinbasePrice > 0 && binancePrice > 0)
+                ? ((coinbasePrice - binancePrice) / binancePrice) * 100
                 : 0;
 
-            // Kimchi Premium
-            const globalPriceKrw = binancePrice * usdToKrw;
-            const kimchiPremium = (globalPriceKrw && upbitPrice) ? ((upbitPrice - globalPriceKrw) / globalPriceKrw) * 100 : 0;
-
-            // Coinbase Premium
-            let coinbasePremium = 0;
-            if (coinbasePrice > 0 && binancePrice > 0) {
-                // If coinbase price is very different (e.g. wrapped token), skip?
-                // For now, accept it.
-                coinbasePremium = ((coinbasePrice - binancePrice) / binancePrice) * 100;
-            }
-
             return {
-                symbol: symbolUpper,
+                symbol: sym,
                 name: coin.name,
                 image: coin.image,
                 change24h: coin.price_change_percentage_24h,
