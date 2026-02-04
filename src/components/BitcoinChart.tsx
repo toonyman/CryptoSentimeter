@@ -100,9 +100,9 @@ export function BitcoinChart() {
                             itemStyle={{ color: '#e2e8f0' }}
                             labelStyle={{ color: '#94a3b8', marginBottom: '4px' }}
                             labelFormatter={(date) => format(date, 'MMM dd, HH:mm')}
-                            formatter={(value: any, name: string) => {
-                                if (name === 'price') return [`$${parseInt(value).toLocaleString()}`, 'Price'];
-                                if (name === 'fng') return [value, 'Fear & Greed'];
+                            formatter={(value: any, name: any) => {
+                                if (name === 'Bitcoin Price') return [`$${parseInt(value).toLocaleString()}`, 'Price'];
+                                if (name === 'Fear & Greed') return [value, 'Fear & Greed'];
                                 return [value, name];
                             }}
                         />
