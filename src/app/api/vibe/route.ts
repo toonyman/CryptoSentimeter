@@ -12,8 +12,7 @@ export async function GET(request: NextRequest) {
     const apiKey = process.env.NEWS_API_KEY;
 
     if (!apiKey) {
-        // Fallback for development if no key is set
-        console.warn('NEWS_API_KEY is not set. Returning empty articles.');
+        console.error('NEWS_API_KEY is missing');
         return NextResponse.json({
             success: true,
             articles: [],

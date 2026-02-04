@@ -161,7 +161,7 @@ export function VibeChecker() {
         <div id="vibe-checker" className="w-full">
             <div className="glass-card rounded-xl border border-white/5 bg-white/[0.02] relative overflow-hidden flex flex-col md:flex-row">
                 {/* Search & Main Score Section */}
-                <div className="p-6 md:p-8 flex-1 flex flex-col justify-center border-b md:border-b-0 md:border-r border-white/5 relative">
+                <div className="p-6 md:p-8 flex-1 flex flex-col justify-center items-center border-b md:border-b-0 md:border-r border-white/5 relative">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 blur-3xl rounded-full pointer-events-none" />
 
                     {/* Compact Search Header */}
@@ -193,7 +193,7 @@ export function VibeChecker() {
                             <p className="text-sm text-muted-foreground">{t.vibe.subtitle}</p>
                         </div>
                     ) : (
-                        <div className="flex flex-row items-center gap-6">
+                        <div className="flex flex-row items-center justify-center w-full gap-6">
                             <div className="relative w-24 h-24 sm:w-32 sm:h-32 shrink-0">
                                 <svg className="w-full h-full -rotate-90 transform" viewBox="0 0 100 100">
                                     <circle cx="50" cy="50" r="42" className="stroke-white/5" strokeWidth="8" fill="none" />

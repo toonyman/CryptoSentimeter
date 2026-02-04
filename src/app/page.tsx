@@ -110,11 +110,6 @@ function Dashboard() {
       {/* Dashboard Grid */}
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-6 auto-rows-[minmax(350px,auto)]">
 
-        {/* Vibe Checker (Row 0, Full Width) */}
-        <div className="lg:col-span-3">
-          <VibeChecker />
-        </div>
-
         {/* Bitcoin Chart (Row 1) */}
         <div className="glass-card p-6 rounded-xl lg:col-span-2 flex flex-col justify-center">
           <BitcoinChart />
@@ -202,7 +197,12 @@ function Dashboard() {
           </div>
         </motion.div>
 
-        {/* Macro Economic Insights (Row 2) */}
+        {/* Vibe Checker (Row 2, Full Width) */}
+        <div className="lg:col-span-3">
+          <VibeChecker />
+        </div>
+
+        {/* Macro Economic Insights (Row 3) */}
         <div className="lg:col-span-3 glass-card p-6 rounded-xl border border-white/5 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 blur-3xl rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" />
           <MacroInsights />
