@@ -1,20 +1,28 @@
 "use client";
 
-import { useBitcoinChart, useCryptoPrices, useFearAndGreed } from '@/hooks/useCryptoData';
+import { useBitcoinChart, useEthChart, useCryptoPrices, useFearAndGreed } from '@/hooks/useCryptoData';
 import { ComposedChart, Line, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Loader2, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { format, isSameDay } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { useState } from 'react';
 
 export function BitcoinChart() {
-    const { chartData, isLoading: chartLoading } = useBitcoinChart();
+    const [activeChart, setActiveChart] = useState<'BTC' | 'ETH'>('BTC');
+
+    const { chartData: btcChart, isLoading: btcLoading } = useBitcoinChart();
+    const { chartData: ethChart, isLoading: ethLoading } = useEthChart();
     const { coins, isLoading: coinsLoading } = useCryptoPrices();
-    const { history: fngHistory, isLoading: fngLoading } = useFearAndGreed();
+    const { history: fngHistory } = useFearAndGreed();
     const { t } = useLanguage();
 
     const bitcoin = coins?.find(c => c.id === 'bitcoin');
-    const isLoading = chartLoading || coinsLoading;
+    const ethereum = coins?.find(c => c.id === 'ethereum');
+
+    const currentCoin = activeChart === 'BTC' ? bitcoin : ethereum;
+    const currentChart = activeChart === 'BTC' ? btcChart : ethChart;
+    const isLoading = (activeChart === 'BTC' ? btcLoading : ethLoading) || coinsLoading;
 
     if (isLoading) {
         return (
@@ -25,14 +33,13 @@ export function BitcoinChart() {
         );
     }
 
-    if (!chartData || !chartData.prices) {
+    if (!currentChart || !currentChart.prices) {
         return <div className="h-[250px] w-full flex items-center justify-center text-xs text-muted-foreground">Chart Unavailable</div>;
     }
 
-    const data = chartData.prices.map(([timestamp, price]) => {
+    const data = currentChart.prices.map(([timestamp, price]) => {
         const date = new Date(timestamp);
         // Find matching F&G value for this day
-        // F&G timestamp is mostly midnight UTC. We match by day.
         const fngItem = fngHistory?.find(item => isSameDay(new Date(parseInt(item.timestamp) * 1000), date));
 
         return {
@@ -48,32 +55,54 @@ export function BitcoinChart() {
 
     return (
         <div className="w-full h-[350px] mt-4 px-4 md:px-0">
+            {/* Chart Header & Toggle */}
             <div className="flex flex-col items-center mb-6">
-                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-2">{t.chart.title}</span>
-                {bitcoin && (
+                <div className="flex items-center gap-2 p-1 bg-white/5 rounded-lg mb-3">
+                    <button
+                        onClick={() => setActiveChart('BTC')}
+                        className={cn(
+                            "px-3 py-1 text-xs font-bold rounded-md transition-all",
+                            activeChart === 'BTC' ? "bg-primary text-primary-foreground shadow" : "text-muted-foreground hover:text-white"
+                        )}
+                    >
+                        BITCOIN
+                    </button>
+                    <button
+                        onClick={() => setActiveChart('ETH')}
+                        className={cn(
+                            "px-3 py-1 text-xs font-bold rounded-md transition-all",
+                            activeChart === 'ETH' ? "bg-blue-600 text-white shadow" : "text-muted-foreground hover:text-white"
+                        )}
+                    >
+                        TOTAL 2 (ETH)
+                    </button>
+                </div>
+
+                {currentCoin && (
                     <div className="flex items-center gap-3 animate-fade-in-up">
                         <span className="text-3xl md:text-4xl font-bold text-white tracking-tight">
-                            ${bitcoin.current_price.toLocaleString()}
+                            ${currentCoin.current_price.toLocaleString()}
                         </span>
                         <div className={cn(
                             "flex items-center gap-0.5 px-2 py-1 rounded-lg text-sm font-bold",
-                            bitcoin.price_change_percentage_24h >= 0
+                            currentCoin.price_change_percentage_24h >= 0
                                 ? "bg-green-500/10 text-green-400"
                                 : "bg-red-500/10 text-red-400"
                         )}>
-                            {bitcoin.price_change_percentage_24h >= 0 ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
-                            {Math.abs(bitcoin.price_change_percentage_24h).toFixed(2)}%
+                            {currentCoin.price_change_percentage_24h >= 0 ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
+                            {Math.abs(currentCoin.price_change_percentage_24h).toFixed(2)}%
                         </div>
                     </div>
                 )}
             </div>
+
             <div className="w-full h-[250px]">
                 <ResponsiveContainer width="100%" height="100%">
                     <ComposedChart data={data}>
                         <defs>
                             <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.3} />
-                                <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0} />
+                                <stop offset="5%" stopColor={activeChart === 'BTC' ? "#0ea5e9" : "#6366f1"} stopOpacity={0.3} />
+                                <stop offset="95%" stopColor={activeChart === 'BTC' ? "#0ea5e9" : "#6366f1"} stopOpacity={0} />
                             </linearGradient>
                         </defs>
                         <XAxis
@@ -101,7 +130,8 @@ export function BitcoinChart() {
                             labelStyle={{ color: '#94a3b8', marginBottom: '4px' }}
                             labelFormatter={(date) => format(date, 'MMM dd, HH:mm')}
                             formatter={(value: any, name: any) => {
-                                if (name === 'Bitcoin Price') return [`$${parseInt(value).toLocaleString()}`, 'Price'];
+                                const label = activeChart === 'BTC' ? 'Bitcoin Price' : 'Total2 (ETH)';
+                                if (name === 'Price') return [`$${parseInt(value).toLocaleString()}`, label];
                                 if (name === 'Fear & Greed') return [value, 'Fear & Greed'];
                                 return [value, name];
                             }}
@@ -111,12 +141,13 @@ export function BitcoinChart() {
                             yAxisId="left"
                             type="monotone"
                             dataKey="price"
-                            name="Bitcoin Price"
-                            stroke="#0ea5e9"
+                            name={activeChart === 'BTC' ? "Bitcoin Price" : "Total 2 (ETH)"}
+                            stroke={activeChart === 'BTC' ? "#0ea5e9" : "#6366f1"}
                             strokeWidth={2}
                             fillOpacity={1}
                             fill="url(#colorPrice)"
                         />
+                        {/* Only show F&G for Bitcoin context, or both? F&G is crypto-wide, so ok. */}
                         <Line
                             yAxisId="right"
                             type="stepAfter"

@@ -94,3 +94,20 @@ export function useBitcoinChart() {
         error
     };
 }
+
+export function useEthChart() {
+    const { data, error, isLoading } = useSWR(
+        'https://api.coingecko.com/api/v3/coins/ethereum/market_chart?vs_currency=usd&days=7',
+        fetcher,
+        {
+            refreshInterval: 600000, // 10 mins
+            revalidateOnFocus: false
+        }
+    );
+
+    return {
+        chartData: data as ChartData | undefined,
+        isLoading,
+        error
+    };
+}
