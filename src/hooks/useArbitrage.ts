@@ -60,79 +60,65 @@ const INITIAL_COINS: CoinGeckoCoin[] = [
 ];
 
 export function useArbitrage() {
-    // 1. Fetch Top 30 Coins (Increased for better coverage)
-    const { data: coinsData } = useSWR<CoinGeckoCoin[]>(
-        'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=30&page=1&sparkline=false',
+    const { data: apiResponse, isLoading: isApiLoading } = useSWR(
+        '/api/market-data',
         fetcher,
-        { refreshInterval: 60000, keepPreviousData: true }
+        { refreshInterval: 5000 }
     );
 
-    const activeCoins = coinsData || INITIAL_COINS;
+    const activeCoins = (apiResponse?.coins && apiResponse.coins.length > 0) ? apiResponse.coins : INITIAL_COINS;
+    const usdToKrw = apiResponse?.rates?.KRW || 1400;
 
-    // 2. Fetch Exchange Rate (Cached long-term)
-    const { data: exchangeRateData } = useSWR(
-        'https://api.exchangerate-api.com/v4/latest/USD',
-        fetcher,
-        { refreshInterval: 3600000, revalidateOnFocus: false }
-    );
-    const usdToKrw = exchangeRateData?.rates?.KRW || 1400;
-
-    // 3. Construct markets string for Upbit & Binance in parallel
-    // Major coins on Upbit KRW market
-    const symbols = activeCoins.map(c => c.symbol.toUpperCase());
-    const upbitQuery = symbols.map(s => `KRW-${s}`).join(',');
-
-    // Binance specific symbols to reduce payload size
-    const binanceSymbolsQuery = JSON.stringify(symbols.map(s => `${s}USDT`));
-
-    // 4. Parallel Price Fetching
-    const { data: upbitData, isLoading: upbitLoading } = useSWR<UpbitTicker[]>(
-        `https://api.upbit.com/v1/ticker?markets=${upbitQuery}`,
-        fetcher,
-        { refreshInterval: 5000, keepPreviousData: true }
-    );
-
-    const { data: binanceData, isLoading: binanceLoading } = useSWR<BinanceTicker[]>(
-        `https://api.binance.com/api/v3/ticker/price?symbols=${binanceSymbolsQuery}`,
-        fetcher,
-        { refreshInterval: 5000, keepPreviousData: true }
-    );
-
-    const { data: coinbaseData } = useSWR<CoinbaseRates>(
-        `https://api.coinbase.com/v2/exchange-rates?currency=USD`,
-        fetcher,
-        { refreshInterval: 10000, keepPreviousData: true }
-    );
-
-    // Initial loading is ONLY true if we have literally NO price data yet
-    const isLoading = !upbitData && !binanceData && !coinsData;
+    // Check if we are truly loading (no data yet)
+    // If apiResponse is missing, we are loading.
+    const isLoading = isApiLoading && !apiResponse;
 
     let arbitrageData: ArbitrageData[] = [];
 
-    if (activeCoins && (upbitData || binanceData)) {
-        const upbitMap = new Map(Array.isArray(upbitData) ? upbitData.map(t => [t.market, t.trade_price]) : []);
-        const binanceMap = new Map(Array.isArray(binanceData) ? binanceData.map(t => [t.symbol, t.price]) : []);
-        const coinbaseRates = coinbaseData?.data?.rates || {};
+    if (apiResponse && activeCoins) {
+        const upbitData = apiResponse.upbit || [];
+        const binanceData = apiResponse.binance || [];
+        const coinbaseRates = apiResponse.coinbase || {};
 
-        arbitrageData = activeCoins.map((coin) => {
+        const upbitMap = new Map(Array.isArray(upbitData) ? upbitData.map((t: any) => [t.market, t.trade_price]) : []);
+        const binanceMap = new Map(Array.isArray(binanceData) ? binanceData.map((t: any) => [t.symbol, t.price]) : []);
+
+        arbitrageData = activeCoins.map((coin: CoinGeckoCoin) => {
             const sym = coin.symbol.toUpperCase();
 
+            // Upbit Price
             const upbitPrice = upbitMap.get(`KRW-${sym}`) || 0;
+
+            // Binance Price
             const bPriceStr = binanceMap.get(`${sym}USDT`);
             let binancePrice = bPriceStr ? parseFloat(bPriceStr) : 0;
-            if (sym === 'USDT') binancePrice = 1;
 
-            // Optional: Skip if no price from both major sources
-            if (!upbitPrice && !binancePrice) return null;
+            // Special cases
+            if (sym === 'USDT') {
+                binancePrice = 1;
+                // approximates
+            }
 
+            // Coinbase Price
             const cRate = coinbaseRates[sym];
             const coinbasePrice = cRate ? 1 / parseFloat(cRate) : 0;
 
             const globalPriceKrw = binancePrice * usdToKrw;
-            const kimchiPremium = (globalPriceKrw && upbitPrice) ? ((upbitPrice - globalPriceKrw) / globalPriceKrw) * 100 : 0;
+
+            // Calc Premiums
+            // Kimchi Premium: ((Korean Price - Global Price) / Global Price) * 100
+            const kimchiPremium = (globalPriceKrw > 0 && upbitPrice > 0)
+                ? ((upbitPrice - globalPriceKrw) / globalPriceKrw) * 100
+                : 0;
+
+            // Coinbase Premium: ((Coinbase Price - Binance Price) / Binance Price) * 100
+            // Often tracked as (Coinbase - Binance) strictly
             const coinbasePremium = (coinbasePrice > 0 && binancePrice > 0)
                 ? ((coinbasePrice - binancePrice) / binancePrice) * 100
                 : 0;
+
+            // Filter out if critical data is missing (optional, but requested behavior implied cleaning lists)
+            if (!upbitPrice && !binancePrice) return null;
 
             return {
                 symbol: sym,
