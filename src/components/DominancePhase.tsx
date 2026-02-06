@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useMemo } from 'react';
-import { useGlobalMarket, useCryptoPrices } from '@/hooks/useCryptoData';
+import { useGlobalMarket } from '@/hooks/useCryptoData';
+import { useMarketData, ArbitrageItem } from '@/hooks/useMarketData';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { motion } from 'framer-motion';
 import { TrendingUp, TrendingDown, Info, Activity, Bitcoin, Coins } from 'lucide-react';
@@ -10,13 +11,14 @@ import { cn } from '@/lib/utils';
 export function DominancePhase() {
     const { t } = useLanguage();
     const { data: globalData, isLoading: globalLoading } = useGlobalMarket();
-    const { coins, isLoading: coinsLoading } = useCryptoPrices();
+    const { data: marketData, isLoading: marketLoading } = useMarketData();
 
     const analysis = useMemo(() => {
+        const coins = marketData?.items;
         if (!globalData || !coins) return null;
 
         const btcDominance = globalData.market_cap_percentage.btc;
-        const btcData = coins.find(c => c.symbol.toLowerCase() === 'btc');
+        const btcData = coins.find((c: ArbitrageItem) => c.symbol.toLowerCase() === 'btc');
         const btcPriceChange = btcData?.price_change_percentage_24h || 0;
 
         // Determination Logic
@@ -63,9 +65,9 @@ export function DominancePhase() {
         }
 
         return { btcDominance, phase, description, colorClass, icon, suggestion, btcPriceChange };
-    }, [globalData, coins, t]);
+    }, [globalData, marketData, t]);
 
-    if (globalLoading || coinsLoading) {
+    if (globalLoading || marketLoading) {
         return (
             <div className="animate-pulse space-y-4 p-4">
                 <div className="h-4 w-1/2 bg-white/5 rounded" />

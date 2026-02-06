@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Globe, TrendingUp, TrendingDown, Clock, Info, Banknote, BarChart4, AlertCircle } from 'lucide-react';
+import { Globe, TrendingUp, TrendingDown, Clock, Info, Banknote, BarChart4, AlertCircle, ArrowUpRight } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
 
@@ -143,9 +143,20 @@ export function MacroInsights() {
                     <p className="text-xl font-black text-white mb-1 tracking-tight">
                         {data.fed?.forecast || "Calculating..."}
                     </p>
-                    <p className="text-[10px] text-muted-foreground leading-relaxed italic">
+                    <p className="text-[10px] text-muted-foreground leading-relaxed italic mb-4">
                         * Based on CME FedWatch data simulation
                     </p>
+                    <motion.a
+                        href="https://www.cmegroup.com/markets/interest-rates/cme-fedwatch-tool.html"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-[10px] font-bold hover:bg-indigo-500/20 transition-all"
+                    >
+                        {t.macro.view_fed_watch}
+                        <ArrowUpRight className="w-3 h-3" />
+                    </motion.a>
                 </div>
 
                 {/* Crypto Impact */}

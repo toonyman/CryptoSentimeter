@@ -1,68 +1,80 @@
 import { NextResponse } from 'next/server';
 
+// Common crypto symbols that are usually on both exchanges
+const TOP_SYMBOLS = ['BTC', 'ETH', 'SOL', 'XRP', 'DOGE', 'ADA', 'AVAX', 'LINK', 'DOT', 'TRX', 'SHIB', 'NEAR'];
+
 export async function GET() {
     try {
-        // Fallback Coins (Top 15) to use if CoinGecko fails
-        const FALLBACK_COINS = [
-            { symbol: 'btc', name: 'Bitcoin', image: 'https://assets.coingecko.com/coins/images/1/large/bitcoin.png', market_cap: 0, price_change_percentage_24h: 0, market_cap_change_percentage_24h: 0 },
-            { symbol: 'eth', name: 'Ethereum', image: 'https://assets.coingecko.com/coins/images/279/large/ethereum.png', market_cap: 0, price_change_percentage_24h: 0, market_cap_change_percentage_24h: 0 },
-            { symbol: 'sol', name: 'Solana', image: 'https://assets.coingecko.com/coins/images/4128/large/solana.png', market_cap: 0, price_change_percentage_24h: 0, market_cap_change_percentage_24h: 0 },
-            { symbol: 'xrp', name: 'XRP', image: 'https://assets.coingecko.com/coins/images/44/large/xrp.png', market_cap: 0, price_change_percentage_24h: 0, market_cap_change_percentage_24h: 0 },
-            { symbol: 'doge', name: 'Dogecoin', image: 'https://assets.coingecko.com/coins/images/5/large/dogecoin.png', market_cap: 0, price_change_percentage_24h: 0, market_cap_change_percentage_24h: 0 },
-            { symbol: 'ada', name: 'Cardano', image: 'https://assets.coingecko.com/coins/images/975/large/cardano.png', market_cap: 0, price_change_percentage_24h: 0, market_cap_change_percentage_24h: 0 },
-            { symbol: 'avax', name: 'Avalanche', image: 'https://assets.coingecko.com/coins/images/12559/large/Avalanche_Circle_RedWhite_Trans.png', market_cap: 0, price_change_percentage_24h: 0, market_cap_change_percentage_24h: 0 },
-            { symbol: 'link', name: 'Chainlink', image: 'https://assets.coingecko.com/coins/images/877/large/chainlink-new-logo.png', market_cap: 0, price_change_percentage_24h: 0, market_cap_change_percentage_24h: 0 },
-            { symbol: 'shib', name: 'Shiba Inu', image: 'https://assets.coingecko.com/coins/images/11939/large/shiba.png', market_cap: 0, price_change_percentage_24h: 0, market_cap_change_percentage_24h: 0 },
-            { symbol: 'dot', name: 'Polkadot', image: 'https://assets.coingecko.com/coins/images/12171/large/polkadot.png', market_cap: 0, price_change_percentage_24h: 0, market_cap_change_percentage_24h: 0 }
-        ];
+        // Fallback Coins to use if CoinGecko fails
+        const FALLBACK_COINS = TOP_SYMBOLS.map(s => ({
+            symbol: s.toLowerCase(),
+            name: s,
+            image: `https://assets.coingecko.com/coins/images/1/large/${s.toLowerCase()}.png`,
+            current_price: 0,
+            market_cap: 0,
+            price_change_percentage_24h: 0,
+            market_cap_change_percentage_24h: 0
+        }));
 
         // 1. Fetch Top Coins from CoinGecko
-        // Note: CoinGecko has strict rate limits. In production, caching is essential.
         const coinsRes = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=30&page=1&sparkline=false', { next: { revalidate: 60 } });
 
-        // Fallback if CoinGecko fails (e.g. rate limit)
         let coinsData = [];
         if (coinsRes.ok) {
             coinsData = await coinsRes.json();
         } else {
-            console.warn('CoinGecko fetch failed, using fallback list');
             coinsData = FALLBACK_COINS;
         }
 
-        // 2. Fetch Exchange Rate
-        const rateRes = await fetch('https://api.exchangerate-api.com/v4/latest/USD', { next: { revalidate: 3600 } });
-        const rateData = await rateRes.json();
+        // 2. Fetch Exchange Rate & Market Lists
+        const [rateRes, upbitMarketsRes, binanceExchangeInfoRes] = await Promise.all([
+            fetch('https://api.exchangerate-api.com/v4/latest/USD', { next: { revalidate: 3600 } }).catch(() => null),
+            fetch('https://api.upbit.com/v1/market/all', { next: { revalidate: 3600 } }).catch(() => null),
+            fetch('https://api.binance.com/api/v3/exchangeInfo', { next: { revalidate: 3600 } }).catch(() => null)
+        ]);
+
+        const rateData = rateRes?.ok ? await rateRes.json() : null;
         const usdToKrw = rateData?.rates?.KRW || 1400;
 
-        // 3. Prepare Symbols
-        // Only proceed if we have coins
-        let upbitData: any[] = [];
-        let binanceData: any[] = [];
-        let coinbaseRates: any = {};
+        const symbols = coinsData.map((c: any) => c.symbol.toUpperCase());
 
-        if (coinsData.length > 0) {
-            const symbols = coinsData.map((c: any) => c.symbol.toUpperCase());
+        // 3. Filter valid symbols for each exchange
+        let validUpbitSymbols = new Set<string>();
+        if (upbitMarketsRes?.ok) {
+            const markets = await upbitMarketsRes.json();
+            markets.forEach((m: any) => {
+                if (m.market.startsWith('KRW-')) {
+                    validUpbitSymbols.add(m.market.split('-')[1]);
+                }
+            });
+        }
 
-            // Upbit Query
-            const upbitQuery = symbols.map((s: string) => `KRW-${s}`).join(',');
+        let validBinanceSymbols = new Set<string>();
+        if (binanceExchangeInfoRes?.ok) {
+            const info = await binanceExchangeInfoRes.json();
+            info.symbols.forEach((s: any) => {
+                if (s.status === 'TRADING' && s.quoteAsset === 'USDT') {
+                    validBinanceSymbols.add(s.baseAsset);
+                }
+            });
+        }
 
-            // Binance Query
-            // Binance symbols need to be exact. USDT pairs.
-            const binanceSymbolsQuery = JSON.stringify(symbols.map((s: string) => `${s}USDT`));
+        const upbitQuery = symbols.filter((s: string) => validUpbitSymbols.has(s)).map((s: string) => `KRW-${s}`).join(',');
+        const binanceSymbols = symbols.filter((s: string) => validBinanceSymbols.has(s)).map((s: string) => `${s}USDT`);
 
-            // 4. Fetch Prices in Parallel
-            const [upbitRes, binanceRes, coinbaseRes] = await Promise.all([
-                fetch(`https://api.upbit.com/v1/ticker?markets=${upbitQuery}`, { cache: 'no-store' }),
-                fetch(`https://api.binance.com/api/v3/ticker/price?symbols=${binanceSymbolsQuery}`, { cache: 'no-store' }),
-                fetch(`https://api.coinbase.com/v2/exchange-rates?currency=USD`, { next: { revalidate: 60 } })
-            ]);
+        // 4. Fetch Tickers in Parallel
+        const [upbitPricesRes, binancePricesRes, coinbaseRes] = await Promise.all([
+            upbitQuery ? fetch(`https://api.upbit.com/v1/ticker?markets=${upbitQuery}`, { cache: 'no-store' }).catch(() => null) : Promise.resolve(null),
+            binanceSymbols.length > 0 ? fetch(`https://api.binance.com/api/v3/ticker/price?symbols=${encodeURIComponent(JSON.stringify(binanceSymbols))}`, { cache: 'no-store' }).catch(() => null) : Promise.resolve(null),
+            fetch(`https://api.coinbase.com/v2/exchange-rates?currency=USD`, { next: { revalidate: 60 } }).catch(() => null)
+        ]);
 
-            if (upbitRes.ok) upbitData = await upbitRes.json();
-            if (binanceRes.ok) binanceData = await binanceRes.json();
-            if (coinbaseRes.ok) {
-                const cbJson = await coinbaseRes.json();
-                coinbaseRates = cbJson?.data?.rates || {};
-            }
+        let upbitData = upbitPricesRes?.ok ? await upbitPricesRes.json() : [];
+        let binanceData = binancePricesRes?.ok ? await binancePricesRes.json() : [];
+        let coinbaseRates = {};
+        if (coinbaseRes?.ok) {
+            const cbJson = await coinbaseRes.json();
+            coinbaseRates = cbJson?.data?.rates || {};
         }
 
         return NextResponse.json({

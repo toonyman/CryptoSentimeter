@@ -164,6 +164,17 @@ export function VibeChecker() {
                 <div className="p-6 md:p-8 flex-1 flex flex-col justify-center items-center border-b md:border-b-0 md:border-r border-white/5 relative">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 blur-3xl rounded-full pointer-events-none" />
 
+                    {/* Feature Description Header */}
+                    <div className="w-full max-w-sm mb-8 text-center md:text-left">
+                        <h3 className="text-xl font-black text-white mb-2 uppercase tracking-tighter italic flex items-center gap-2 justify-center md:justify-start">
+                            <BarChart3 className="w-5 h-5 text-emerald-400" />
+                            {t.vibe.title}
+                        </h3>
+                        <p className="text-[11px] text-muted-foreground leading-relaxed font-medium">
+                            {t.vibe.description}
+                        </p>
+                    </div>
+
                     {/* Compact Search Header */}
                     <div className="flex items-center gap-3 mb-6 relative z-10 w-full max-w-sm">
                         <div className="relative flex-1 group">
@@ -174,7 +185,7 @@ export function VibeChecker() {
                                 onChange={(e) => setKeyword(e.target.value)}
                                 onKeyDown={(e) => e.key === 'Enter' && analyzeVibe(keyword)}
                                 placeholder={t.vibe.placeholder}
-                                className="w-full pl-10 pr-4 py-2 rounded-lg bg-black/20 text-white placeholder-white/20 focus:outline-none focus:bg-black/40 transition-all text-sm font-medium border border-white/5 focus:border-emerald-500/30"
+                                className="w-full pl-10 pr-4 py-2 rounded-lg bg-black/40 text-white placeholder-white/40 focus:outline-none focus:bg-black/60 transition-all text-sm font-medium border border-white/20 focus:border-emerald-500/50"
                             />
                         </div>
                         <button

@@ -1,0 +1,25 @@
+import { NextResponse } from 'next/server';
+
+export async function GET(request: Request) {
+    const { searchParams } = new URL(request.url);
+    const coinId = searchParams.get('coinId') || 'bitcoin';
+    const days = searchParams.get('days') || '7';
+
+    try {
+        const res = await fetch(
+            `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=${days}`,
+            { next: { revalidate: 300 } } // Cache for 5 minutes
+        );
+
+        if (!res.ok) {
+            console.error(`CoinGecko Chart API error: ${res.status}`);
+            return NextResponse.json({ error: 'Failed to fetch chart data' }, { status: res.status });
+        }
+
+        const data = await res.json();
+        return NextResponse.json(data);
+    } catch (error) {
+        console.error('Market Chart API Error:', error);
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    }
+}

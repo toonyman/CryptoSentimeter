@@ -103,12 +103,14 @@ type Translations = {
             share: string;
             copied: string;
             copyUrl: string;
+            description: string;
             error: string;
         };
         macro: {
             title: string;
             fed_forecast: string;
             impact_title: string;
+            view_fed_watch: string;
         };
     };
 };
@@ -213,12 +215,14 @@ const translations: Translations = {
             share: "Share",
             copied: "Copied!",
             copyUrl: "Copy URL",
+            description: "Analyzes thousands of global news headlines in real-time using AI to quantify the 'vibe' of any crypto asset.",
             error: "Failed to fetch data."
         },
         macro: {
             title: "Macro Economic Insights",
             fed_forecast: "Fed Rate Expectation",
-            impact_title: "Crypto Market Impact"
+            impact_title: "Crypto Market Impact",
+            view_fed_watch: "View CME FedWatch"
         }
     },
 
@@ -320,12 +324,14 @@ const translations: Translations = {
             share: "공유하기",
             copied: "복사됨!",
             copyUrl: "링크 복사",
+            description: "AI 감성 분석 기술을 통해 전 세계 수천 개의 뉴스 헤드라인을 실시간으로 분석하여, 특정 자산의 현재 시장 분위기를 점수로 수치화합니다.",
             error: "데이터를 가져오지 못했습니다."
         },
         macro: {
             title: "거시경제 인사이트",
             fed_forecast: "연준 금리 전망",
-            impact_title: "코인 시장 영향"
+            impact_title: "코인 시장 영향",
+            view_fed_watch: "CME 페드워치 확인하기"
         }
     }
 };

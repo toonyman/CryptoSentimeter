@@ -2,7 +2,8 @@
 
 import { Activity, ArrowUpRight, BarChart3, PieChart } from 'lucide-react';
 import Link from 'next/link';
-import { useFearAndGreed, useGlobalMarket, useCryptoPrices } from '@/hooks/useCryptoData';
+import { useFearAndGreed, useGlobalMarket } from '@/hooks/useCryptoData';
+import { useMarketData } from '@/hooks/useMarketData';
 import { ArbitrageTable } from '@/components/ArbitrageTable';
 import { NewsFeed } from '@/components/NewsFeed';
 import { InfluencerFeed } from '@/components/InfluencerFeed';
@@ -23,7 +24,9 @@ function Dashboard() {
   const { t, language } = useLanguage();
   const { data: fng, history: fngHistory, isLoading: fngLoading } = useFearAndGreed();
   const { data: globalData, isLoading: globalLoading } = useGlobalMarket();
-  const { coins } = useCryptoPrices();
+  const { data: marketData, isLoading: marketLoading } = useMarketData();
+
+  const coins = marketData?.items;
 
   const getFngColor = (value: number) => {
     if (value >= 75) return "text-green-500";
@@ -35,7 +38,7 @@ function Dashboard() {
   const fngValue = fng ? parseInt(fng.value) : 50;
   const fngColor = getFngColor(fngValue);
 
-  const btc = coins?.find(c => c.symbol.toLowerCase() === 'btc');
+  const btc = coins?.find((c: any) => c.symbol.toLowerCase() === 'btc');
   const btcChange = btc?.price_change_percentage_24h || 0;
   const isBullish = btcChange >= 0;
 
@@ -53,13 +56,13 @@ function Dashboard() {
           <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
             <Activity className="text-white w-6 h-6" />
           </div>
-          <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400 hidden sm:block">
+          <span className="text-lg sm:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400 block truncate max-w-[150px] sm:max-w-none">
             CryptoSentimeter
           </span>
         </div>
 
         <div className="flex items-center gap-4">
-          <nav className="hidden md:flex gap-6 text-sm font-medium text-muted-foreground mr-2">
+          <nav className="hidden lg:flex gap-6 text-sm font-medium text-muted-foreground mr-2">
             <Link href="#dashboard" className="hover:text-primary transition-colors">{t.header.dashboard}</Link>
             <Link href="#arbitrage" className="hover:text-primary transition-colors">{t.header.arbitrage}</Link>
             <Link href="#vibe-checker" className="hover:text-primary transition-colors">{t.vibe.title}</Link>

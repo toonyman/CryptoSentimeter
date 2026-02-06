@@ -1,6 +1,7 @@
 "use client";
 
-import { useBitcoinChart, useEthChart, useCryptoPrices, useFearAndGreed } from '@/hooks/useCryptoData';
+import { useBitcoinChart, useEthChart, useFearAndGreed } from '@/hooks/useCryptoData';
+import { useMarketData, ArbitrageItem } from '@/hooks/useMarketData';
 import { ComposedChart, Line, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Loader2, ArrowUpRight, ArrowDownRight } from 'lucide-react';
@@ -13,16 +14,17 @@ export function BitcoinChart() {
 
     const { chartData: btcChart, isLoading: btcLoading } = useBitcoinChart();
     const { chartData: ethChart, isLoading: ethLoading } = useEthChart();
-    const { coins, isLoading: coinsLoading } = useCryptoPrices();
+    const { data: marketData, isLoading: marketLoading } = useMarketData();
     const { history: fngHistory } = useFearAndGreed();
     const { t } = useLanguage();
 
-    const bitcoin = coins?.find(c => c.id === 'bitcoin');
-    const ethereum = coins?.find(c => c.id === 'ethereum');
+    const coins = marketData?.items;
+    const bitcoin = coins?.find((c: ArbitrageItem) => c.id === 'bitcoin');
+    const ethereum = coins?.find((c: ArbitrageItem) => c.id === 'ethereum');
 
     const currentCoin = activeChart === 'BTC' ? bitcoin : ethereum;
     const currentChart = activeChart === 'BTC' ? btcChart : ethChart;
-    const isLoading = (activeChart === 'BTC' ? btcLoading : ethLoading) || coinsLoading;
+    const isLoading = (activeChart === 'BTC' ? btcLoading : ethLoading) || marketLoading;
 
     if (isLoading) {
         return (

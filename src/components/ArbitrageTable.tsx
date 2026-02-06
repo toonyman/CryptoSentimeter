@@ -1,19 +1,21 @@
 "use client";
 
-import { useArbitrage } from '@/hooks/useArbitrage';
+import { useMarketData } from '@/hooks/useMarketData';
 import { cn } from '@/lib/utils';
 import { Globe, ArrowRightLeft, ArrowUpRight, ArrowDownRight, ArrowUpDown } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useState, useMemo } from 'react';
 
-type SortKey = 'symbol' | 'binancePrice' | 'change24h' | 'upbitPrice' | 'kimchiPremium' | 'coinbasePremium' | 'marketCap' | 'marketCapChange24h';
+type SortKey = 'symbol' | 'binancePrice' | 'price_change_percentage_24h' | 'upbitPrice' | 'kimchiPremium' | 'coinbasePremium' | 'market_cap' | 'market_cap_change_percentage_24h';
 type SortDirection = 'asc' | 'desc';
 
 export function ArbitrageTable() {
-    const { data, isLoading, exchangeRate } = useArbitrage();
+    const { data: marketData, isLoading, refresh } = useMarketData();
+    const data = marketData?.items;
+    const exchangeRate = marketData?.exchangeRate || 1400;
     const { t } = useLanguage();
-    const [sortKey, setSortKey] = useState<SortKey>('marketCap');
+    const [sortKey, setSortKey] = useState<SortKey>('market_cap');
     const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
 
     const handleSort = (key: SortKey) => {
@@ -71,17 +73,17 @@ export function ArbitrageTable() {
                             <th className="sticky left-0 z-20 bg-[#0f172a] py-4 pl-4 font-medium hover:text-white transition-colors shadow-[1px_0_0_0_rgba(255,255,255,0.05)]" onClick={() => handleSort('symbol')}>
                                 <div className="flex items-center">{t.market_overview.coin} <SortIcon active={sortKey === 'symbol'} /></div>
                             </th>
-                            <th className="py-4 font-medium text-right hover:text-white transition-colors" onClick={() => handleSort('marketCap')}>
-                                <div className="flex items-center justify-end">{t.market_overview.market_cap} <SortIcon active={sortKey === 'marketCap'} /></div>
+                            <th className="py-4 font-medium text-right hover:text-white transition-colors" onClick={() => handleSort('market_cap')}>
+                                <div className="flex items-center justify-end">{t.market_overview.market_cap} <SortIcon active={sortKey === 'market_cap'} /></div>
                             </th>
-                            <th className="py-4 font-medium text-right hover:text-white transition-colors" onClick={() => handleSort('marketCapChange24h')}>
-                                <div className="flex items-center justify-end">MCap Change <SortIcon active={sortKey === 'marketCapChange24h'} /></div>
+                            <th className="py-4 font-medium text-right hover:text-white transition-colors" onClick={() => handleSort('market_cap_change_percentage_24h')}>
+                                <div className="flex items-center justify-end">MCap Change <SortIcon active={sortKey === 'market_cap_change_percentage_24h'} /></div>
                             </th>
                             <th className="py-4 font-medium text-right hover:text-white transition-colors" onClick={() => handleSort('binancePrice')}>
                                 <div className="flex items-center justify-end">{t.arbitrage_table.global} <SortIcon active={sortKey === 'binancePrice'} /></div>
                             </th>
-                            <th className="py-4 font-medium text-right hover:text-white transition-colors" onClick={() => handleSort('change24h')}>
-                                <div className="flex items-center justify-end">{t.market_overview.change24h} <SortIcon active={sortKey === 'change24h'} /></div>
+                            <th className="py-4 font-medium text-right hover:text-white transition-colors" onClick={() => handleSort('price_change_percentage_24h')}>
+                                <div className="flex items-center justify-end">{t.market_overview.change24h} <SortIcon active={sortKey === 'price_change_percentage_24h'} /></div>
                             </th>
                             <th className="py-4 font-medium text-right hover:text-white transition-colors" onClick={() => handleSort('upbitPrice')}>
                                 <div className="flex items-center justify-end">{t.arbitrage_table.korea} <SortIcon active={sortKey === 'upbitPrice'} /></div>
@@ -109,7 +111,7 @@ export function ArbitrageTable() {
                                 </tr>
                             ))
                         ) : (
-                            sortedData.slice(0, 15).map((item) => (
+                            sortedData.map((item) => (
                                 <tr key={item.symbol} className="group hover:bg-white/5 transition-colors">
                                     <td className="sticky left-0 z-10 bg-[#0f172a] group-hover:bg-[#1e293b] py-4 pl-4 flex items-center gap-3 shadow-[1px_0_0_0_rgba(255,255,255,0.05)] transition-colors">
                                         <img src={item.image} alt={item.name} className="w-8 h-8 rounded-full" />
@@ -119,17 +121,16 @@ export function ArbitrageTable() {
                                         </div>
                                     </td>
                                     <td className="py-4 text-right text-sm text-muted-foreground">
-                                        ${(item.marketCap / 1e9).toFixed(2)}B
+                                        ${(item.market_cap / 1e9).toFixed(2)}B
                                     </td>
                                     <td className="py-4 text-right">
                                         <div className={cn("inline-flex items-center gap-1 text-sm font-semibold justify-end",
-                                            item.marketCapChange24h >= 0 ? "text-emerald-400" : "text-red-400"
+                                            item.market_cap_change_percentage_24h >= 0 ? "text-emerald-400" : "text-red-400"
                                         )}>
-                                            {/* Note: CoinGecko API markets endpoint doesn't always return mcap change % unless specified, checked hooks and it seemed missing, but assuming it works now or default 0 */}
-                                            {item.marketCapChange24h ? (
+                                            {item.market_cap_change_percentage_24h ? (
                                                 <>
-                                                    {item.marketCapChange24h >= 0 ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
-                                                    {Math.abs(item.marketCapChange24h).toFixed(2)}%
+                                                    {item.market_cap_change_percentage_24h >= 0 ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
+                                                    {Math.abs(item.market_cap_change_percentage_24h).toFixed(2)}%
                                                 </>
                                             ) : <span className="text-muted-foreground">-</span>}
                                         </div>
@@ -139,10 +140,10 @@ export function ArbitrageTable() {
                                     </td>
                                     <td className="py-4 text-right">
                                         <div className={cn("inline-flex items-center gap-1 text-sm font-semibold justify-end",
-                                            item.change24h >= 0 ? "text-emerald-400" : "text-red-400"
+                                            item.price_change_percentage_24h >= 0 ? "text-emerald-400" : "text-red-400"
                                         )}>
-                                            {item.change24h >= 0 ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
-                                            {Math.abs(item.change24h).toFixed(2)}%
+                                            {item.price_change_percentage_24h >= 0 ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
+                                            {Math.abs(item.price_change_percentage_24h).toFixed(2)}%
                                         </div>
                                     </td>
                                     <td className="py-4 text-right text-sm">
